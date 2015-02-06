@@ -11,6 +11,7 @@ Providers which implement the |oauth2|_ protocol.
     Amazon
     Behance
     Bitly
+    Coinbase
     Cosm
     DeviantART
     Eventbrite
@@ -38,7 +39,7 @@ from authomatic.exceptions import CancellationError, FailureError, OAuth2Error
 import authomatic.core as core
 
 
-__all__ = ['OAuth2', 'Amazon', 'Behance', 'Bitly', 'Cosm', 'DeviantART',
+__all__ = ['OAuth2', 'Amazon', 'Behance', 'Bitly', 'Coinbase', 'Cosm', 'DeviantART',
            'Eventbrite', 'Facebook', 'Foursquare', 'GitHub', 'Google',
            'LinkedIn', 'PayPal', 'Reddit', 'Viadeo', 'VK', 'WindowsLive',
            'Yammer', 'Yandex']
@@ -593,6 +594,68 @@ class Bitly(OAuth2):
         user.link = info.get('profile_url')
         
         return user
+
+
+class Coinbase(OAuth2):
+    """Coinbase |oauth2| provider.
+
+    * Dashboard: https://www.coinbase.com/oauth/applications
+    * Docs: https://www.coinbase.com/docs/api/oauth_tutorial
+    * API reference: https://developers.coinbase.com/api
+
+    Supported :class:`.User` properties:
+
+    * id
+    * name
+    * timezone
+    * email
+
+    Unsupported :class:`.User` properties:
+
+    * username
+    * first_name
+    * last_name
+    * nickname
+    * link
+    * gender
+    * locale
+    * phone
+    * picture
+    * birth_date
+    * country
+    * city
+    * postal_code
+
+    """
+    user_authorization_url = 'https://www.coinbase.com/oauth/authorize'
+    access_token_url = 'https://www.coinbase.com/oauth/token'
+    user_info_url = 'https://api.coinbase.com/v1/users/self'
+
+    supported_user_attributes = core.SupportedUserAttributes(
+        id=True,
+        email=True,
+        name=True,
+        timezone=True
+    )
+
+    def _x_scope_parser(self, scope):
+        """Coinbase uses a space as a scope delimiter."""
+        return ' '.join(scope) if scope else ''
+
+    @staticmethod
+    def _x_user_parser(user, data):
+        if 'user' in data:
+            user.id = data['user'].get('id')
+            user.email = data['user'].get('email')
+            user.name = data['user'].get('name')
+            user.timezone = data['user'].get('time_zone')
+        return user
+
+    @classmethod
+    def _x_credentials_parser(cls, credentials, data):
+        if data.get('token_type') == 'bearer':
+            credentials.token_type = cls.BEARER
+        return credentials
 
 
 class Cosm(OAuth2):
@@ -1818,4 +1881,4 @@ class Yandex(OAuth2):
 # The provider type ID is generated from this list's indexes!
 # Always append new providers at the end so that ids of existing providers don't change!
 PROVIDER_ID_MAP = [OAuth2, Behance, Bitly, Cosm, DeviantART, Facebook, Foursquare, GitHub, Google, LinkedIn,
-          PayPal, Reddit, Viadeo, VK, WindowsLive, Yammer, Yandex, Eventbrite, Amazon]
+          PayPal, Reddit, Viadeo, VK, WindowsLive, Yammer, Yandex, Eventbrite, Amazon, Coinbase]
