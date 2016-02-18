@@ -145,8 +145,11 @@ class DjangoAdapter(BaseAdapter):
     
     @property
     def params(self):
-        return dict(self.request.REQUEST)
-    
+        request_dict = {}
+        request_dict.update(self.request.GET)
+        request_dict.update(self.request.POST)
+        return request_dict
+
     @property
     def url(self):
         return self.request.build_absolute_uri(self.request.path)
