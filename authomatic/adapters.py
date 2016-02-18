@@ -145,7 +145,8 @@ class DjangoAdapter(BaseAdapter):
     
     @property
     def params(self):
-        request_dict = {}
+        import django.http.request
+        request_dict = django.http.request.QueryDict(mutable=True)
         request_dict.update(self.request.GET)
         request_dict.update(self.request.POST)
         return request_dict
